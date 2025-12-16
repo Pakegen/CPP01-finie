@@ -1,0 +1,7 @@
+c++ -Wall -Wextra -Werror -std=c++98 src/main.cpp -o replace
+salut quentin
+
+
+
+	c++ -Wall -Wextra -Werror -std=c++98 src/main.cpp -o replace
+c++ -Wall -Wextra -Werror -std=c++98 src/main.cpp -o replace
