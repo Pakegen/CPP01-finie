@@ -1,99 +1,41 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: qacjl <qacjl@student.42.fr>                +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/09 14:19:52 by qacjl             #+#    #+#             */
-/*   Updated: 2025/09/09 15:18:26 by qacjl            ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <string>
-
-static std::string unescape(const std::string& s)
-{
-	std::string out;
-	out.reserve(s.size());
-	for (std::string::size_type i = 0; i < s.size(); i++)
-	{
-		if (s[i] == '\\' && i + 1 < s.size())
-		{
-			char c = s[i + 1];
-			if (c == 'n')
-			{
-				out += '\n';
-				i++;
-			}
-			else if (c == 't')
-			{
-				out += '\t';
-				i++;
-			}
-			else if (c == '\\')
-			{
-				out += '\\';
-				i++;
-			}
-			else
-				out += s[i];
-		}
-		else
-			out += s[i];
-	}
-	return (out);
-}
 
 int main(int ac, char *av[])
 {
 	if (ac != 4)
-	{
-		std::cout << "Usage: ./replace <filename> <search> <replacement>" << std::endl;
-		return (1);
-	}
-	const std::string filename = av[1];
-	std::string search = unescape(av[2]);
-	std::string replace = unescape(av[3]);
+		return (std::cerr << "Usage: ./replace <filename> <s1> <s2>" << std::endl, 1);
 
-	std::ifstream in(filename.c_str());
-	if (!in)
-	{
-		std::cout << "Can't read file " << filename << std::endl;
-		return (1);
-	}
+	std::string filename = av[1];
+	std::string s1 = av[2];
+	std::string s2 = av[3];
 
-	std::ostringstream buffer;
-	buffer << in.rdbuf();
-	std::string text = buffer.str();
+	if (s1.empty())
+		return (std::cerr << "Error: s1 cannot be empty." << std::endl, 1);
 
-	std::ofstream out((filename + ".replace").c_str());
-	if (!out)
-	{
-		std::cout << "Can't write file " << filename << ".replace" << std::endl;
-		return (1);
-	}
-	if (search.empty() || search == replace)
-	{
-		out << text;
-		return (0);
-	}
+	std::ifstream infile(filename.c_str());
+	if (!infile)
+		return (std::cerr << "Error: could not open input file." << std::endl, 1);
 
-	std::string::size_type pos = 0;
-	while (true)
+	std::ofstream outfile((filename + ".replace").c_str());
+	if (!outfile)
+		return (std::cerr << "Error: could not create output file." << std::endl, 1);
+
+	std::string line;
+	while (std::getline(infile, line))
 	{
-		std::string::size_type found = text.find(search, pos);
-		if (found == std::string::npos)
+		size_t pos = 0;
+		while ((pos = line.find(s1, pos)) != std::string::npos)
 		{
-			out << text.substr(pos);
-			break;
+			line.erase(pos, s1.length());
+			line.insert(pos, s2);
+			pos += s2.length();
 		}
-		out << text.substr(pos, found - pos);
-		out << replace;
-		pos = found + search.size();
+		outfile << line;
+		if (!infile.eof())
+			outfile << '\n';
 	}
-	return (0);
+
+	return 0;
 }
